@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <memory.h>
 
 typedef char ALIGN[16];
 
@@ -104,6 +105,26 @@ void free(void *block) {
     }
     header->s.is_free = 1;
     pthread_mutex_unlock(&global_malloc_lock);
+}
+
+void *calloc(size_t num, size_t nsize) {
+    size_t size;
+    void *block;
+    if (!num || !nsize) {
+        return NULL;
+    }
+    size = num * nsize;
+    // 检查是否溢出
+    if (nsize != size / num) {
+        return NULL;
+    }
+    block = malloc(size);
+    if (!block) {
+        return NULL;
+    }
+    // 清除内存内容
+    memset(block, 0, size);
+    return block;
 }
 
 int main() {
